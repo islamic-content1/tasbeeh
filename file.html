@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>برنامج عبادة — لوحة التحكم</title>
+<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --g1:#0f4a28;--g2:#1a6b3c;--g3:#5cb87a;--g4:#d4f4e2;--g5:#e8f6ee;
+  --r1:#c0392b;--r2:#e07a7a;--r3:#fcd5d5;
+  --gold:#b8860b;--gold-l:#fff8e1;--gold-b:#f0c040;
+  --bg:#fdfaf5;--sf:#ffffff;--bd:#e2d9c8;--tx:#2c2416;--mu:#7a6a52;
+  --sh:0 2px 12px rgba(0,0,0,.08);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+*,button,input,select,textarea{font-family:'Amiri',serif!important}
+html,body{overflow-x:hidden;width:100%;background:var(--bg);color:var(--tx)}
+body{padding-bottom:3rem}
+
+/* ===== HEADER ===== */
+.app-hdr{background:linear-gradient(135deg,var(--g1),var(--g2));color:#fff;padding:1rem 1rem .7rem;text-align:center}
+.app-hdr h1{font-size:20px;font-weight:700}
+.app-hdr p{font-size:11px;opacity:.75;margin-top:3px}
+
+/* ===== TABS ===== */
+.tabs{display:flex;background:#fff;border-bottom:2px solid var(--bd);position:sticky;top:0;z-index:100}
+.tab{flex:1;padding:10px 4px;font-size:13px;font-weight:700;text-align:center;cursor:pointer;color:var(--mu);border-bottom:3px solid transparent;transition:all .2s}
+.tab.active{color:var(--g1);border-bottom-color:var(--g2);background:var(--g5)}
+
+/* ===== SHARED ===== */
+.page{display:none;padding:12px 10px}
+.page.active{display:block}
+.card{background:var(--sf);border:1.5px solid var(--bd);border-radius:12px;margin-bottom:1rem;overflow:hidden;box-shadow:var(--sh)}
+.card-hdr{background:var(--g2);color:#fff;padding:9px 14px;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:space-between}
+.card-body{padding:12px 14px}
+.field-row{display:flex;flex-direction:column;gap:3px;margin-bottom:10px}
+.field-row label{font-size:11px;color:var(--mu);font-weight:700}
+.field-row input,.field-row select,.field-row textarea{border:1.5px solid var(--bd);border-radius:8px;padding:7px 10px;font-size:12px;background:var(--sf);color:var(--tx);outline:none;width:100%}
+.field-row input:focus,.field-row select:focus{border-color:var(--g2)}
+.field-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.field-grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px}
+.toggle-row{display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid #f0ece4}
+.toggle-row:last-child{border-bottom:none}
+.toggle-row span{font-size:12px;color:var(--tx)}
+.toggle-row small{font-size:10px;color:var(--mu);display:block}
+.tog{position:relative;width:40px;height:22px;flex-shrink:0}
+.tog input{opacity:0;width:0;height:0}
+.tog-sl{position:absolute;inset:0;background:#ddd;border-radius:22px;cursor:pointer;transition:.2s}
+.tog-sl:before{content:'';position:absolute;width:16px;height:16px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.2s}
+.tog input:checked+.tog-sl{background:var(--g2)}
+.tog input:checked+.tog-sl:before{transform:translateX(18px)}
+.btn{font-family:inherit!important;font-size:13px;font-weight:700;padding:9px 16px;border-radius:9px;cursor:pointer;border:none;transition:all .15s}
+.btn-primary{background:linear-gradient(90deg,var(--g2),var(--g1));color:#fff}
+.btn-danger{background:#fff;color:var(--r1);border:1.5px solid var(--r1)}
+.btn-ghost{background:#fff;color:var(--mu);border:1.5px solid var(--bd)}
+.btn-gold{background:linear-gradient(90deg,#c9971c,var(--gold));color:#fff}
+.btn-sm{font-size:11px;padding:5px 10px;border-radius:7px}
+.badge{display:inline-flex;align-items:center;gap:3px;font-size:10px;padding:2px 7px;border-radius:20px;font-weight:700}
+.badge-green{background:var(--g4);color:var(--g1)}
+.badge-red{background:var(--r3);color:var(--r1)}
+.badge-gold{background:var(--gold-l);color:var(--gold)}
+.badge-gray{background:#f0ece4;color:var(--mu)}
+
+/* ===== SETTINGS PAGE ===== */
+.cat-block{background:var(--sf);border:1.5px solid var(--bd);border-radius:12px;margin-bottom:1rem;overflow:hidden;box-shadow:var(--sh)}
+.cat-hdr{display:flex;align-items:center;gap:8px;padding:10px 12px;background:var(--g5);border-bottom:1.5px solid var(--bd)}
+.cat-color{width:14px;height:14px;border-radius:4px;flex-shrink:0}
+.cat-name{flex:1;font-size:13px;font-weight:700;color:var(--g1)}
+.cat-actions{display:flex;gap:6px}
+.ibada-list{padding:8px 12px}
+.ibada-item{background:#faf8f3;border:1px solid var(--bd);border-radius:9px;padding:9px 11px;margin-bottom:7px;position:relative}
+.ibada-item-hdr{display:flex;align-items:flex-start;gap:8px}
+.ibada-item-name{flex:1;font-size:12px;font-weight:700;color:var(--tx);line-height:1.4}
+.ibada-item-meta{display:flex;gap:5px;flex-wrap:wrap;margin-top:5px}
+.ibada-item-actions{display:flex;gap:5px;flex-shrink:0}
+.add-ibada-btn{width:100%;padding:8px;border:1.5px dashed var(--g3);background:var(--g5);color:var(--g2);border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;margin-top:4px}
+.add-cat-btn{width:100%;padding:10px;border:2px dashed var(--bd);background:transparent;color:var(--mu);border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;margin-bottom:1rem}
+.drag-handle{cursor:grab;color:var(--mu);font-size:14px;padding:2px;touch-action:none}
+
+/* ===== MODAL ===== */
+.overlay{position:fixed;inset:0;z-index:500;background:rgba(0,0,0,.45);display:none;align-items:flex-end;justify-content:center}
+.overlay.show{display:flex}
+.modal{background:var(--sf);border-radius:16px 16px 0 0;width:100%;max-width:480px;max-height:90vh;overflow-y:auto;padding-bottom:env(safe-area-inset-bottom)}
+.modal-hdr{background:linear-gradient(90deg,var(--g2),var(--g1));color:#fff;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:10}
+.modal-hdr span{font-size:14px;font-weight:700}
+.modal-body{padding:16px}
+.section-label{font-size:11px;font-weight:700;color:var(--mu);text-transform:uppercase;letter-spacing:.5px;margin:12px 0 6px;padding-bottom:4px;border-bottom:1px solid var(--bd)}
+
+/* ===== TABLE PAGE ===== */
+.tw{overflow:hidden;border-radius:12px;box-shadow:var(--sh);border:1px solid var(--bd);background:var(--sf);margin-bottom:1rem}
+table{width:100%;border-collapse:collapse;table-layout:fixed;font-size:11px}
+thead th{background:var(--g1);color:#fff;font-weight:600;padding:7px 2px;text-align:center;font-size:10px}
+thead th.th-cat{background:var(--g2);width:18px;writing-mode:vertical-lr}
+thead th.th-name{text-align:right;padding-right:8px;width:32%}
+thead th.th-pts{width:26px;font-size:9px;opacity:.85}
+thead th.th-day{width:5.2%}
+td.cc{background:#e8f6ee;color:var(--g1);font-weight:700;text-align:center;padding:2px 1px;border:1px solid #c8e8d4;writing-mode:vertical-lr;font-size:9px;vertical-align:middle;overflow:hidden}
+td.ic{font-size:10.5px;padding:4px 6px 4px 3px;border:1px solid #ede7db;overflow:hidden;white-space:normal;line-height:1.35}
+td.pc{text-align:center;color:var(--mu);font-size:11px;padding:3px 1px;border:1px solid #ede7db;background:#faf8f3;font-weight:600}
+td.cell{text-align:center;padding:0;border:1px solid #ede7db;cursor:pointer;user-select:none;background:var(--sf);height:38px;-webkit-tap-highlight-color:transparent;touch-action:manipulation;vertical-align:middle;transition:background .1s}
+td.cell.done{background:var(--g4)}
+td.cell.miss{background:var(--r3)}
+.cell-inner{display:flex;flex-direction:column;align-items:center;justify-content:center;height:38px;gap:1px}
+.cell-pts{font-size:10px;font-weight:700;line-height:1}
+.cell-pts.pos{color:var(--g1)}
+.cell-pts.neg{color:var(--r1)}
+.cell-pts.bonus{color:var(--gold)}
+tr.tr-total td{background:var(--g1);color:#fff;font-weight:700;font-size:11px;padding:6px 3px;text-align:center;border-top:2px solid var(--g2)}
+tr.tr-total td.lbl{text-align:right;padding-right:8px;background:var(--g2)}
+tr.tr-total td.sub{background:var(--g2);font-size:10px;color:#a8e6c0}
+.stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:8px}
+.stat-box{background:var(--sf);border:1px solid var(--bd);border-radius:10px;padding:10px;text-align:center;box-shadow:var(--sh)}
+.stat-lbl{font-size:10px;color:var(--mu);margin-bottom:2px}
+.stat-val{font-size:22px;font-weight:800;color:var(--g2);line-height:1}
+.action-btns{display:flex;flex-direction:column;gap:8px;margin-bottom:.5rem}
+.action-btn{width:100%;padding:11px;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;border:none}
+.ab-green{background:linear-gradient(90deg,var(--g2),var(--g1));color:#fff}
+.ab-reset{background:#fff;color:var(--r1);border:1.5px solid var(--r1);font-size:12px}
+#toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(60px);background:var(--g1);color:#fff;font-size:12px;padding:8px 20px;border-radius:30px;opacity:0;transition:all .3s;pointer-events:none;z-index:9999}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.empty-state{text-align:center;padding:32px 16px;color:var(--mu)}
+.empty-state .icon{font-size:40px;margin-bottom:8px}
+.empty-state p{font-size:12px;line-height:1.8}
+.tip{background:var(--gold-l);border:1px solid var(--gold-b);border-radius:8px;padding:9px 12px;font-size:11px;color:#7a5c00;line-height:1.7;margin-bottom:1rem}
+</style>
+</head>
+<body>
+
+<div class="app-hdr">
+  <h1>🕌 برنامج عبادة — لوحة التحكم</h1>
+  <p>بسم الله الرحمن الرحيم</p>
+</div>
+
+<div class="tabs">
+  <div class="tab active" id="tab-settings" onclick="switchTab('settings')">⚙️ الإعدادات</div>
+  <div class="tab" id="tab-table" onclick="switchTab('table')">📋 الجدول</div>
+</div>
+
+<!-- =========== SETTINGS PAGE =========== -->
+<div class="page active" id="page-settings">
+
+  <div class="tip">
+    💡 أضيفي الفئات والعبادات من هنا، وبعدين اضغطي "توليد الجدول" وراح يتبني الجدول تلقائياً!
+  </div>
+
+  <!-- إعدادات عامة -->
+  <div class="card">
+    <div class="card-hdr">⚙️ إعدادات عامة</div>
+    <div class="card-body">
+      <div class="field-grid">
+        <div class="field-row">
+          <label>عدد الأيام</label>
+          <input type="number" id="cfg-days" value="10" min="1" max="31" onchange="saveCfg()">
+        </div>
+        <div class="field-row">
+          <label>اسم البرنامج</label>
+          <input type="text" id="cfg-title" value="برنامج عبادة" onchange="saveCfg()">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- الفئات -->
+  <div id="cats-container"></div>
+  <button class="add-cat-btn" onclick="openAddCat()">+ إضافة فئة جديدة</button>
+
+  <!-- زر التوليد -->
+  <button class="btn btn-gold" style="width:100%;padding:13px;font-size:14px;margin-bottom:1rem" onclick="generateAndSwitch()">
+    ✨ توليد الجدول من الإعدادات
+  </button>
+
+</div>
+
+<!-- =========== TABLE PAGE =========== -->
+<div class="page" id="page-table">
+
+  <div class="stat-grid">
+    <div class="stat-box"><div class="stat-lbl">المجموع</div><div class="stat-val" id="s-grand">0</div></div>
+    <div class="stat-box"><div class="stat-lbl">المعدل</div><div class="stat-val" id="s-avg">—</div></div>
+    <div class="stat-box"><div class="stat-lbl">الأيام</div><div class="stat-val" id="s-days">0</div></div>
+  </div>
+
+  <div class="tw"><table><thead id="t-head"></thead><tbody id="t-body"></tbody></table></div>
+
+  <div class="action-btns">
+    <button class="action-btn ab-reset" onclick="confirmReset()">🗑️ مسح بيانات الجدول</button>
+  </div>
+  <p style="text-align:center;font-size:10px;color:var(--mu)">كبسة = عملته ✓ &nbsp;|&nbsp; كبستين = ما عملته ✗ &nbsp;|&nbsp; ثلاث = إلغاء</p>
+
+</div>
+
+<!-- ====== MODALS ====== -->
+
+<!-- Modal: فئة -->
+<div class="overlay" id="modal-cat">
+  <div class="modal">
+    <div class="modal-hdr">
+      <span id="modal-cat-title">فئة جديدة</span>
+      <button onclick="closeModal('modal-cat')" style="background:none;border:none;color:#fff;font-size:20px;cursor:pointer">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="field-row"><label>اسم الفئة</label><input type="text" id="fc-name" placeholder="مثال: الأذكار"></div>
+      <div class="field-row">
+        <label>لون مميز</label>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px" id="color-picker">
+          <div class="col-opt" data-c="#1a6b3c" style="width:24px;height:24px;border-radius:6px;background:#1a6b3c;cursor:pointer;border:2px solid transparent" onclick="pickColor(this)"></div>
+          <div class="col-opt" data-c="#1565c0" style="width:24px;height:24px;border-radius:6px;background:#1565c0;cursor:pointer;border:2px solid transparent" onclick="pickColor(this)"></div>
+          <div class="col-opt" data-c="#6a1b9a" style="width:24px;height:24px;border-radius:6px;background:#6a1b9a;cursor:pointer;border:2px solid transparent" onclick="pickColor(this)"></div>
+          <div class="col-opt" data-c="#b8860b" style="width:24px;height:24px;border-radius:6px;background:#b8860b;cursor:pointer;border:2px solid transparent" onclick="pickColor(this)"></div>
+          <div class="col-opt" data-c="#c0392b" style="width:24px;height:24px;border-radius:6px;background:#c0392b;cursor:pointer;border:2px solid transparent" onclick="pickColor(this)"></div>
+          <div class="col-opt" data-c="#00695c" style="width:24px;height:24px;border-radius:6px;background:#00695c;cursor:pointer;border:2px solid transparent" onclick="pickColor(this)"></div>
+          <div class="col-opt" data-c="#4e342e" style="width:24px;height:24px;border-radius:6px;background:#4e342e;cursor:pointer;border:2px solid transparent" onclick="pickColor(this)"></div>
+          <div class="col-opt" data-c="#37474f" style="width:24px;height:24px;border-radius:6px;background:#37474f;cursor:pointer;border:2px solid transparent" onclick="pickColor(this)"></div>
+        </div>
+        <input type="color" id="fc-color" value="#1a6b3c" style="margin-top:6px;width:100%;height:36px;border-radius:8px;border:1.5px solid var(--bd);cursor:pointer" onchange="syncColorInput()">
+      </div>
+      <div style="display:flex;gap:8px;margin-top:4px">
+        <button class="btn btn-ghost btn-sm" onclick="closeModal('modal-cat')" style="flex:1">إلغاء</button>
+        <button class="btn btn-primary btn-sm" onclick="saveCat()" style="flex:2">حفظ الفئة ✓</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: عبادة -->
+<div class="overlay" id="modal-ibada">
+  <div class="modal">
+    <div class="modal-hdr">
+      <span id="modal-ibada-title">عبادة جديدة</span>
+      <button onclick="closeModal('modal-ibada')" style="background:none;border:none;color:#fff;font-size:20px;cursor:pointer">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="field-row"><label>اسم العبادة *</label><input type="text" id="fi-name" placeholder="مثال: أذكار الصباح"></div>
+      <div class="field-row"><label>ملاحظة إضافية (اختياري)</label><input type="text" id="fi-note" placeholder="مثال: آية الكرسي والمعوذات"></div>
+      <div class="field-row"><label>بديل العبادة (اختياري)</label><input type="text" id="fi-badil" placeholder="مثال: ورد يا لطيف"></div>
+
+      <div class="section-label">النقاط</div>
+      <div class="field-grid">
+        <div class="field-row"><label>عدد النقاط *</label><input type="number" id="fi-pts" placeholder="مثال: 5" min="-99" max="999" step="1"></div>
+        <div class="field-row">
+          <label>نوع النقاط</label>
+          <select id="fi-type">
+            <option value="normal">أساسية ✅</option>
+            <option value="bonus">بونص ⭐</option>
+            <option value="negative">سلبية ❌</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="section-label">خيارات</div>
+      <div class="toggle-row">
+        <div><span>تقبل تعديل النقاط يومياً</span><small>البنت تقدر تعدل الرقم من داخل الجدول</small></div>
+        <label class="tog"><input type="checkbox" id="fi-editable" checked><span class="tog-sl"></span></label>
+      </div>
+      <div class="toggle-row">
+        <div><span>لها هدف شخصي قابل للتخصيص</span><small>تظهر في قسم "حددي كميتك"</small></div>
+        <label class="tog"><input type="checkbox" id="fi-goal"><span class="tog-sl"></span></label>
+      </div>
+
+      <!-- حد أدنى -->
+      <div id="goal-section" style="display:none;margin-top:10px;background:var(--g5);border-radius:8px;padding:10px">
+        <div class="field-row"><label>الوحدة (مثال: ركعة، جزء، مرة)</label><input type="text" id="fi-unit" placeholder="مثال: ركعة"></div>
+        <div class="field-row"><label>القيمة الأساسية (الحد الأدنى)</label><input type="number" id="fi-base" placeholder="مثال: 4" min="1"></div>
+        <div class="field-row"><label>تسمية الحد الأدنى</label><input type="text" id="fi-base-label" placeholder="مثال: ٤ ركعات"></div>
+      </div>
+
+      <div style="display:flex;gap:8px;margin-top:14px">
+        <button class="btn btn-ghost btn-sm" onclick="closeModal('modal-ibada')" style="flex:1">إلغاء</button>
+        <button class="btn btn-primary btn-sm" onclick="saveIbada()" style="flex:2">حفظ العبادة ✓</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: تأكيد الحذف -->
+<div class="overlay" id="modal-del">
+  <div class="modal" style="border-radius:16px 16px 0 0">
+    <div class="modal-hdr" style="background:#ef4444"><span>⚠️ تأكيد الحذف</span><button onclick="closeModal('modal-del')" style="background:none;border:none;color:#fff;font-size:20px;cursor:pointer">✕</button></div>
+    <div class="modal-body" style="text-align:center">
+      <div style="font-size:32px;margin-bottom:8px">🗑️</div>
+      <div id="del-msg" style="font-size:13px;color:var(--tx);margin-bottom:16px"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <button class="btn btn-ghost" onclick="closeModal('modal-del')">إلغاء</button>
+        <button class="btn btn-danger" onclick="execDelete()">حذف ✓</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ====== DATA ======
+const STORE_KEY = 'ibada_builder_v1';
+const TABLE_KEY = 'ibada_table_v1';
+
+let cfg = { days: 10, title: 'برنامج عبادة' };
+let cats = [];       // [{id, name, color, ibadas:[{id,name,note,badil,pts,type,editable,goal,unit,base,baseLabel}]}]
+let tableState = {}; // { "catIdx-ibadaIdx-day": 0|1|2 }
+let editedPts = {};  // { "catIdx-ibadaIdx-day": number }
+let selectedColor = '#1a6b3c';
+let editingCatId = null;
+let editingIbadaInfo = null; // {catId, ibadaId}
+let pendingDelete = null;
+
+function uid() { return Math.random().toString(36).slice(2,9); }
+
+function loadData() {
+  try {
+    const raw = localStorage.getItem(STORE_KEY);
+    if (raw) { const d = JSON.parse(raw); cfg = d.cfg||cfg; cats = d.cats||[]; }
+    const tr = localStorage.getItem(TABLE_KEY);
+    if (tr) { const d = JSON.parse(tr); tableState = d.tableState||{}; editedPts = d.editedPts||{}; }
+  } catch(e) {}
+  document.getElementById('cfg-days').value = cfg.days;
+  document.getElementById('cfg-title').value = cfg.title;
+}
+
+function saveData() {
+  localStorage.setItem(STORE_KEY, JSON.stringify({cfg, cats}));
+}
+function saveTable() {
+  localStorage.setItem(TABLE_KEY, JSON.stringify({tableState, editedPts}));
+}
+function saveCfg() {
+  cfg.days = parseInt(document.getElementById('cfg-days').value)||10;
+  cfg.title = document.getElementById('cfg-title').value||'برنامج عبادة';
+  saveData();
+}
+
+// ====== TABS ======
+function switchTab(name) {
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+  document.getElementById('page-'+name).classList.add('active');
+  if (name === 'table') renderTable();
+}
+
+// ====== MODAL ======
+function openModal(id) { document.getElementById(id).classList.add('show'); }
+function closeModal(id) { document.getElementById(id).classList.remove('show'); }
+
+// ====== COLOR PICKER ======
+function pickColor(el) {
+  document.querySelectorAll('.col-opt').forEach(c=>c.style.border='2px solid transparent');
+  el.style.border = '2px solid #fff';
+  selectedColor = el.dataset.c;
+  document.getElementById('fc-color').value = selectedColor;
+}
+function syncColorInput() {
+  selectedColor = document.getElementById('fc-color').value;
+  document.querySelectorAll('.col-opt').forEach(c=>c.style.border='2px solid transparent');
+}
+
+// ====== CATEGORIES ======
+function openAddCat() {
+  editingCatId = null;
+  document.getElementById('modal-cat-title').textContent = 'فئة جديدة';
+  document.getElementById('fc-name').value = '';
+  selectedColor = '#1a6b3c';
+  document.getElementById('fc-color').value = selectedColor;
+  document.querySelectorAll('.col-opt').forEach(c=>c.style.border='2px solid transparent');
+  openModal('modal-cat');
+}
+function openEditCat(id) {
+  const cat = cats.find(c=>c.id===id);
+  if (!cat) return;
+  editingCatId = id;
+  document.getElementById('modal-cat-title').textContent = 'تعديل الفئة';
+  document.getElementById('fc-name').value = cat.name;
+  selectedColor = cat.color;
+  document.getElementById('fc-color').value = cat.color;
+  document.querySelectorAll('.col-opt').forEach(c=>{
+    c.style.border = c.dataset.c===cat.color ? '2px solid #fff' : '2px solid transparent';
+  });
+  openModal('modal-cat');
+}
+function saveCat() {
+  const name = document.getElementById('fc-name').value.trim();
+  if (!name) { showToast('أدخلي اسم الفئة'); return; }
+  if (editingCatId) {
+    const cat = cats.find(c=>c.id===editingCatId);
+    if (cat) { cat.name=name; cat.color=selectedColor; }
+  } else {
+    cats.push({ id:uid(), name, color:selectedColor, ibadas:[] });
+  }
+  saveData(); renderSettings(); closeModal('modal-cat');
+  showToast('✓ تم حفظ الفئة');
+}
+function deleteCat(id) {
+  pendingDelete = { type:'cat', id };
+  document.getElementById('del-msg').textContent = 'هل تريدين حذف الفئة وكل عباداتها؟';
+  openModal('modal-del');
+}
+function execDelete() {
+  closeModal('modal-del');
+  if (!pendingDelete) return;
+  if (pendingDelete.type === 'cat') {
+    cats = cats.filter(c=>c.id!==pendingDelete.id);
+  } else if (pendingDelete.type === 'ibada') {
+    const cat = cats.find(c=>c.id===pendingDelete.catId);
+    if (cat) cat.ibadas = cat.ibadas.filter(i=>i.id!==pendingDelete.ibadaId);
+  }
+  saveData(); renderSettings(); showToast('✓ تم الحذف');
+  pendingDelete = null;
+}
+
+// ====== IBADات ======
+function openAddIbada(catId) {
+  editingIbadaInfo = { catId, ibadaId: null };
+  document.getElementById('modal-ibada-title').textContent = 'عبادة جديدة';
+  document.getElementById('fi-name').value = '';
+  document.getElementById('fi-note').value = '';
+  document.getElementById('fi-badil').value = '';
+  document.getElementById('fi-pts').value = '';
+  document.getElementById('fi-type').value = 'normal';
+  document.getElementById('fi-editable').checked = true;
+  document.getElementById('fi-goal').checked = false;
+  document.getElementById('fi-unit').value = '';
+  document.getElementById('fi-base').value = '';
+  document.getElementById('fi-base-label').value = '';
+  document.getElementById('goal-section').style.display = 'none';
+  openModal('modal-ibada');
+}
+function openEditIbada(catId, ibadaId) {
+  const cat = cats.find(c=>c.id===catId);
+  const ib = cat?.ibadas.find(i=>i.id===ibadaId);
+  if (!ib) return;
+  editingIbadaInfo = { catId, ibadaId };
+  document.getElementById('modal-ibada-title').textContent = 'تعديل العبادة';
+  document.getElementById('fi-name').value = ib.name;
+  document.getElementById('fi-note').value = ib.note||'';
+  document.getElementById('fi-badil').value = ib.badil||'';
+  document.getElementById('fi-pts').value = ib.pts;
+  document.getElementById('fi-type').value = ib.type||'normal';
+  document.getElementById('fi-editable').checked = ib.editable!==false;
+  document.getElementById('fi-goal').checked = !!ib.goal;
+  document.getElementById('fi-unit').value = ib.unit||'';
+  document.getElementById('fi-base').value = ib.base||'';
+  document.getElementById('fi-base-label').value = ib.baseLabel||'';
+  document.getElementById('goal-section').style.display = ib.goal ? 'block' : 'none';
+  openModal('modal-ibada');
+}
+document.getElementById('fi-goal').addEventListener('change', function() {
+  document.getElementById('goal-section').style.display = this.checked ? 'block' : 'none';
+});
+function saveIbada() {
+  const name = document.getElementById('fi-name').value.trim();
+  const pts = parseFloat(document.getElementById('fi-pts').value);
+  if (!name) { showToast('أدخلي اسم العبادة'); return; }
+  if (isNaN(pts)) { showToast('أدخلي عدد النقاط'); return; }
+  const ibada = {
+    id: editingIbadaInfo?.ibadaId || uid(),
+    name,
+    note: document.getElementById('fi-note').value.trim(),
+    badil: document.getElementById('fi-badil').value.trim(),
+    pts,
+    type: document.getElementById('fi-type').value,
+    editable: document.getElementById('fi-editable').checked,
+    goal: document.getElementById('fi-goal').checked,
+    unit: document.getElementById('fi-unit').value.trim(),
+    base: parseFloat(document.getElementById('fi-base').value)||1,
+    baseLabel: document.getElementById('fi-base-label').value.trim(),
+  };
+  const cat = cats.find(c=>c.id===editingIbadaInfo?.catId);
+  if (!cat) return;
+  if (editingIbadaInfo?.ibadaId) {
+    const idx = cat.ibadas.findIndex(i=>i.id===editingIbadaInfo.ibadaId);
+    if (idx>=0) cat.ibadas[idx] = ibada;
+  } else {
+    cat.ibadas.push(ibada);
+  }
+  saveData(); renderSettings(); closeModal('modal-ibada');
+  showToast('✓ تم حفظ العبادة');
+}
+function deleteIbada(catId, ibadaId) {
+  pendingDelete = { type:'ibada', catId, ibadaId };
+  document.getElementById('del-msg').textContent = 'هل تريدين حذف هذه العبادة؟';
+  openModal('modal-del');
+}
+function moveIbada(catId, ibadaId, dir) {
+  const cat = cats.find(c=>c.id===catId);
+  if (!cat) return;
+  const idx = cat.ibadas.findIndex(i=>i.id===ibadaId);
+  const newIdx = idx + dir;
+  if (newIdx<0||newIdx>=cat.ibadas.length) return;
+  [cat.ibadas[idx], cat.ibadas[newIdx]] = [cat.ibadas[newIdx], cat.ibadas[idx]];
+  saveData(); renderSettings();
+}
+function moveCat(catId, dir) {
+  const idx = cats.findIndex(c=>c.id===catId);
+  const newIdx = idx + dir;
+  if (newIdx<0||newIdx>=cats.length) return;
+  [cats[idx], cats[newIdx]] = [cats[newIdx], cats[idx]];
+  saveData(); renderSettings();
+}
+
+// ====== RENDER SETTINGS ======
+function renderSettings() {
+  const cont = document.getElementById('cats-container');
+  if (cats.length === 0) {
+    cont.innerHTML = '<div class="empty-state"><div class="icon">📋</div><p>ما عندك فئات بعد<br>اضغطي "إضافة فئة جديدة" للبداية</p></div>';
+    return;
+  }
+  cont.innerHTML = '';
+  cats.forEach((cat, ci) => {
+    const block = document.createElement('div');
+    block.className = 'cat-block';
+    // header
+    const hdr = document.createElement('div');
+    hdr.className = 'cat-hdr';
+    hdr.innerHTML = `
+      <div class="cat-color" style="background:${cat.color}"></div>
+      <div class="cat-name">${cat.name}</div>
+      <div class="cat-actions">
+        ${ci>0?`<button class="btn btn-ghost btn-sm" onclick="moveCat('${cat.id}',-1)">↑</button>`:''}
+        ${ci<cats.length-1?`<button class="btn btn-ghost btn-sm" onclick="moveCat('${cat.id}',1)">↓</button>`:''}
+        <button class="btn btn-ghost btn-sm" onclick="openEditCat('${cat.id}')">✏️</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteCat('${cat.id}')">🗑️</button>
+      </div>
+    `;
+    block.appendChild(hdr);
+    // ibadas
+    const list = document.createElement('div');
+    list.className = 'ibada-list';
+    if (cat.ibadas.length === 0) {
+      list.innerHTML = '<div style="font-size:11px;color:var(--mu);text-align:center;padding:6px 0">ما في عبادات — أضيفي واحدة!</div>';
+    }
+    cat.ibadas.forEach((ib, ii) => {
+      const item = document.createElement('div');
+      item.className = 'ibada-item';
+      const typeBadge = ib.type==='bonus'
+        ? '<span class="badge badge-gold">⭐ بونص</span>'
+        : ib.type==='negative'
+          ? '<span class="badge badge-red">❌ سلبي</span>'
+          : '<span class="badge badge-green">✅ أساسي</span>';
+      const editBadge = ib.editable
+        ? '<span class="badge badge-gray">✏️ قابل تعديل</span>'
+        : '<span class="badge badge-gray">🔒 ثابت</span>';
+      const goalBadge = ib.goal
+        ? '<span class="badge badge-gold">🎯 هدف شخصي</span>'
+        : '';
+      const badilHtml = ib.badil ? `<div style="font-size:9px;color:var(--gold);margin-top:3px">🔄 ${ib.badil}</div>` : '';
+      const noteHtml = ib.note ? `<div style="font-size:9px;color:var(--mu);margin-top:2px">📌 ${ib.note}</div>` : '';
+      item.innerHTML = `
+        <div class="ibada-item-hdr">
+          <div style="flex:1">
+            <div class="ibada-item-name">${ib.name}</div>
+            ${noteHtml}${badilHtml}
+            <div class="ibada-item-meta">
+              ${typeBadge}
+              <span class="badge" style="background:#e8f6ee;color:#0f4a28">${ib.pts} نقطة</span>
+              ${editBadge}
+              ${goalBadge}
+            </div>
+          </div>
+          <div class="ibada-item-actions">
+            ${ii>0?`<button class="btn btn-ghost btn-sm" onclick="moveIbada('${cat.id}','${ib.id}',-1)">↑</button>`:''}
+            ${ii<cat.ibadas.length-1?`<button class="btn btn-ghost btn-sm" onclick="moveIbada('${cat.id}','${ib.id}',1)">↓</button>`:''}
+            <button class="btn btn-ghost btn-sm" onclick="openEditIbada('${cat.id}','${ib.id}')">✏️</button>
+            <button class="btn btn-danger btn-sm" onclick="deleteIbada('${cat.id}','${ib.id}')">🗑️</button>
+          </div>
+        </div>
+      `;
+      list.appendChild(item);
+    });
+    // add ibada btn
+    const addBtn = document.createElement('button');
+    addBtn.className = 'add-ibada-btn';
+    addBtn.textContent = '+ إضافة عبادة';
+    addBtn.onclick = () => openAddIbada(cat.id);
+    list.appendChild(addBtn);
+    block.appendChild(list);
+    cont.appendChild(block);
+  });
+}
+
+// ====== GENERATE & SWITCH ======
+function generateAndSwitch() {
+  if (cats.length === 0) { showToast('أضيفي فئة أولاً'); return; }
+  const hasIbadas = cats.some(c=>c.ibadas.length>0);
+  if (!hasIbadas) { showToast('أضيفي عبادات داخل الفئات'); return; }
+  switchTab('table');
+  showToast('✨ تم توليد الجدول!');
+}
+
+// ====== RENDER TABLE ======
+function cellKey(catId, ibadaId, day) { return `${catId}-${ibadaId}-${day}`; }
+
+function renderTable() {
+  const days = cfg.days;
+  // head
+  const head = document.getElementById('t-head');
+  const dayNums = ['١','٢','٣','٤','٥','٦','٧','٨','٩','١٠','١١','١٢','١٣','١٤','١٥','١٦','١٧','١٨','١٩','٢٠','٢١','٢٢','٢٣','٢٤','٢٥','٢٦','٢٧','٢٨','٢٩','٣٠','٣١'];
+  let dayHeads = '';
+  for (let d=1;d<=days;d++) dayHeads += `<th class="th-day">${dayNums[d-1]||d}</th>`;
+  head.innerHTML = `<tr><th class="th-cat">الفئة</th><th class="th-name">العبادة</th><th class="th-pts">نق</th>${dayHeads}</tr>`;
+
+  // body
+  const body = document.getElementById('t-body');
+  body.innerHTML = '';
+  if (cats.length===0||!cats.some(c=>c.ibadas.length>0)) {
+    const tr = document.createElement('tr');
+    const td = document.createElement('td');
+    td.colSpan = 3+days;
+    td.style.cssText = 'text-align:center;padding:32px;color:var(--mu);font-size:13px';
+    td.textContent = 'ما في عبادات بعد — اذهبي للإعدادات وأضيفيها!';
+    tr.appendChild(td); body.appendChild(tr);
+    return;
+  }
+  cats.forEach(cat => {
+    if (cat.ibadas.length===0) return;
+    cat.ibadas.forEach((ib, ii) => {
+      const tr = document.createElement('tr');
+      // cat cell (only first row of cat)
+      if (ii===0) {
+        const catTd = document.createElement('td');
+        catTd.className = 'cc';
+        catTd.rowSpan = cat.ibadas.length;
+        catTd.style.background = cat.color+'22';
+        catTd.style.color = cat.color;
+        catTd.style.borderColor = cat.color+'44';
+        catTd.textContent = cat.name;
+        tr.appendChild(catTd);
+      }
+      // name cell
+      const nameTd = document.createElement('td');
+      nameTd.className = 'ic';
+      if (ib.type==='negative') nameTd.style.color = 'var(--r1)';
+      let nameHtml = `<div>${ib.name}</div>`;
+      if (ib.note) nameHtml += `<div style="color:var(--gold);font-size:9px;margin-top:2px">${ib.note}</div>`;
+      if (ib.badil) nameHtml += `<div style="color:var(--gold);font-size:9px;margin-top:1px">🔄 ${ib.badil}</div>`;
+      if (ib.type==='bonus') nameHtml += `<div style="color:var(--gold);font-size:9px;font-weight:700;margin-top:1px">⭐ بونص</div>`;
+      nameTd.innerHTML = nameHtml;
+      tr.appendChild(nameTd);
+      // pts cell
+      const ptsTd = document.createElement('td');
+      ptsTd.className = 'pc';
+      if (ib.type==='negative') ptsTd.style.color='var(--r1)';
+      else if (ib.type==='bonus') ptsTd.style.color='var(--gold)';
+      ptsTd.textContent = ib.pts;
+      tr.appendChild(ptsTd);
+      // day cells
+      for (let d=1;d<=days;d++) {
+        const td = document.createElement('td');
+        td.className = 'cell';
+        td.id = `cell_${cat.id}_${ib.id}_${d}`;
+        const k = cellKey(cat.id,ib.id,d);
+        applyCell(td, tableState[k]||0, cat.id, ib.id, d, ib);
+        td.onclick = () => toggleCell(cat.id, ib.id, d, ib);
+        tr.appendChild(td);
+      }
+      body.appendChild(tr);
+    });
+  });
+  // totals row
+  const totTr = document.createElement('tr');
+  totTr.className = 'tr-total';
+  const lblTd = document.createElement('td');
+  lblTd.className = 'lbl'; lblTd.colSpan=2; lblTd.textContent='مجموع اليوم';
+  totTr.appendChild(lblTd);
+  const maxTd = document.createElement('td');
+  maxTd.className = 'sub'; maxTd.textContent = 'Max: '+calcDayMax();
+  totTr.appendChild(maxTd);
+  for (let d=1;d<=days;d++) {
+    const td = document.createElement('td');
+    td.id = 'day_total_'+d;
+    td.style.cssText='text-align:center;padding:4px 1px;border:1px solid var(--g2);background:var(--g2);color:#a8e6c0;font-size:10px;font-weight:700';
+    totTr.appendChild(td);
+  }
+  body.appendChild(totTr);
+  recalcTable();
+}
+
+function applyCell(td, v, catId, ibadaId, day, ib) {
+  td.classList.remove('done','miss');
+  td.innerHTML='';
+  if (v===1) {
+    td.classList.add('done');
+    const k = `${catId}-${ibadaId}-${day}`;
+    const pts = editedPts[k]!==undefined ? editedPts[k] : ib.pts;
+    const ptsClass = ib.type==='bonus'?'bonus':ib.type==='negative'?'neg':'pos';
+    const inner = document.createElement('div');
+    inner.className='cell-inner';
+    // checkmark
+    inner.innerHTML=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="11" height="11"><path d="M4 12.5L9.5 18L20 6" fill="none" stroke="${ib.type==='negative'?'#c0392b':ib.type==='bonus'?'#b8860b':'#1a6b3c'}" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+    const numSpan = document.createElement('span');
+    numSpan.className = 'cell-pts '+ptsClass;
+    numSpan.textContent = pts;
+    if (ib.editable!==false) {
+      numSpan.title='اضغطي لتعديل النقاط';
+      numSpan.onclick = e => { e.stopPropagation(); openInlineEdit(catId,ibadaId,day,ib,numSpan,pts); };
+    }
+    inner.appendChild(numSpan);
+    td.appendChild(inner);
+  } else if (v===2) {
+    td.classList.add('miss');
+    td.innerHTML=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="11" height="11"><path d="M5 5L19 19M19 5L5 19" fill="none" stroke="#c0392b" stroke-width="2.8" stroke-linecap="round"/></svg>`;
+  }
+}
+
+function openInlineEdit(catId, ibadaId, day, ib, numSpan, curPts) {
+  const input = document.createElement('input');
+  input.type='number'; input.value=curPts; input.min=-99; input.max=999;
+  input.style.cssText='width:28px;font-size:11px;font-weight:700;text-align:center;border:1.5px solid var(--g2);border-radius:4px;background:#fff;color:var(--g1);outline:none;padding:1px 2px';
+  function commit() {
+    const val = parseInt(input.value);
+    if (!isNaN(val)) {
+      editedPts[cellKey(catId,ibadaId,day)] = val;
+      saveTable();
+    }
+    const td = document.getElementById(`cell_${catId}_${ibadaId}_${day}`);
+    if (td) applyCell(td, tableState[cellKey(catId,ibadaId,day)]||0, catId, ibadaId, day, ib);
+    recalcTable();
+    showToast('✓ تم: '+val+' نقطة');
+  }
+  input.onblur=commit;
+  input.onkeydown=e=>{ if(e.key==='Enter')input.blur(); e.stopPropagation(); };
+  input.onclick=e=>e.stopPropagation();
+  numSpan.replaceWith(input);
+  input.focus(); input.select();
+}
+
+function toggleCell(catId, ibadaId, day, ib) {
+  const k = cellKey(catId, ibadaId, day);
+  const cur = tableState[k]||0;
+  const next = (cur+1)%3;
+  if (next===0) delete tableState[k]; else tableState[k]=next;
+  const td = document.getElementById(`cell_${catId}_${ibadaId}_${day}`);
+  if (td) applyCell(td, next, catId, ibadaId, day, ib);
+  saveTable(); recalcTable();
+}
+
+function calcDayMax() {
+  return cats.reduce((s,cat)=>s+cat.ibadas.reduce((ss,ib)=>ss+(ib.type==='normal'&&ib.pts>0?ib.pts:0),0),0);
+}
+function getDayTotal(d) {
+  let t=0;
+  cats.forEach(cat=>cat.ibadas.forEach(ib=>{
+    const k=cellKey(cat.id,ib.id,d);
+    if ((tableState[k]||0)===1) {
+      t += editedPts[k]!==undefined ? editedPts[k] : ib.pts;
+    }
+  }));
+  return t;
+}
+function recalcTable() {
+  const days = cfg.days;
+  let grand=0, filled=0;
+  for (let d=1;d<=days;d++) {
+    const tot = getDayTotal(d);
+    grand += tot;
+    const hasMark = cats.some(cat=>cat.ibadas.some(ib=>(tableState[cellKey(cat.id,ib.id,d)]||0)!==0));
+    if (hasMark) filled++;
+    const el = document.getElementById('day_total_'+d);
+    if (el) el.textContent = tot||'';
+  }
+  document.getElementById('s-grand').textContent = grand;
+  document.getElementById('s-days').textContent = filled+'/'+days;
+  document.getElementById('s-avg').textContent = filled>0?(grand/filled).toFixed(1):'—';
+}
+
+function confirmReset() {
+  if (!confirm('مسح كل بيانات الجدول؟')) return;
+  tableState={}; editedPts={};
+  saveTable(); renderTable(); showToast('✓ تم مسح الجدول');
+}
+
+function showToast(msg) {
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2800);
+}
+
+// ====== INIT ======
+loadData();
+renderSettings();
+</script>
+</body>
+</html>
