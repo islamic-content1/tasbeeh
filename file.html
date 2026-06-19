@@ -119,6 +119,22 @@ tr.tr-total td.sub{background:var(--g2);font-size:10px;color:#a8e6c0}
 .ab-reset{background:#fff;color:var(--r1);border:1.5px solid var(--r1);font-size:12px}
 #toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(60px);background:var(--g1);color:#fff;font-size:12px;padding:8px 20px;border-radius:30px;opacity:0;transition:all .3s;pointer-events:none;z-index:9999}
 #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+/* ===== GOALS SECTION ===== */
+.goals-box{background:var(--sf);border:1.5px solid var(--gold-b);border-radius:12px;margin-bottom:1rem;overflow:hidden;box-shadow:var(--sh)}
+.goals-hdr{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--gold);color:#fff;cursor:pointer;font-size:13px;font-weight:700}
+.goals-body{display:none;padding:12px 14px}
+.goals-tip{font-size:10px;color:#7a5c00;background:var(--gold-l);border-radius:7px;padding:7px 10px;margin-bottom:10px;line-height:1.7;border:1px solid var(--gold-b)}
+.goal-row{display:flex;align-items:center;gap:8px;padding:9px 10px;border-radius:10px;background:#faf8f3;border:1px solid var(--bd);margin-bottom:8px}
+.goal-name{flex:1;font-size:12px;color:var(--tx);line-height:1.4}
+.goal-base-lbl{font-size:10px;color:var(--mu);margin-top:2px}
+.goal-ctrl{display:flex;flex-direction:column;align-items:flex-end;gap:5px;min-width:100px}
+.goal-opts{display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end}
+.goal-opt{font-size:10px;padding:4px 8px;border-radius:6px;border:1.5px solid var(--bd);background:#fff;color:var(--mu);cursor:pointer;white-space:nowrap}
+.goal-opt.active{border-color:var(--g2);background:var(--g5);color:var(--g1);font-weight:700}
+.goal-custom{display:flex;align-items:center;gap:4px;margin-top:2px}
+.goal-custom input{width:50px;border:1.5px solid var(--bd);border-radius:6px;padding:3px 6px;font-size:12px;text-align:center;outline:none}
+.goal-custom input:focus{border-color:var(--gold)}
+.goal-custom span{font-size:10px;color:var(--mu)}
 .empty-state{text-align:center;padding:32px 16px;color:var(--mu)}
 .empty-state .icon{font-size:40px;margin-bottom:8px}
 .empty-state p{font-size:12px;line-height:1.8}
@@ -179,6 +195,18 @@ tr.tr-total td.sub{background:var(--g2);font-size:10px;color:#a8e6c0}
     <div class="stat-box"><div class="stat-lbl">المجموع</div><div class="stat-val" id="s-grand">0</div></div>
     <div class="stat-box"><div class="stat-lbl">المعدل</div><div class="stat-val" id="s-avg">—</div></div>
     <div class="stat-box"><div class="stat-lbl">الأيام</div><div class="stat-val" id="s-days">0</div></div>
+  </div>
+
+  <!-- قسم الأهداف الشخصية -->
+  <div class="goals-box" id="goals-box" style="display:none">
+    <div class="goals-hdr" onclick="toggleGoalsBox()">
+      <span>🎯 حددي كميتك من هذه العبادات</span>
+      <span id="goals-arr">▼</span>
+    </div>
+    <div class="goals-body" id="goals-body">
+      <div class="goals-tip">حددي هدفك الشخصي — أي زيادة عن الأساسي تُحسب بونص إضافي ⭐</div>
+      <div id="goals-rows"></div>
+    </div>
   </div>
 
   <div class="tw"><table><thead id="t-head"></thead><tbody id="t-body"></tbody></table></div>
@@ -577,6 +605,91 @@ function renderSettings() {
   });
 }
 
+// ====== GOALS SECTION ======
+const GOALS_KEY = 'ibada_goals_v2';
+let personalGoals = {}; // { "catId-ibadaId": number }
+
+function loadGoals() {
+  try { const g=localStorage.getItem(GOALS_KEY); if(g) personalGoals=JSON.parse(g); } catch(e){}
+}
+function saveGoals() {
+  try { localStorage.setItem(GOALS_KEY, JSON.stringify(personalGoals)); } catch(e){}
+}
+function goalKey(catId, ibadaId) { return catId+'-'+ibadaId; }
+function getGoalVal(catId, ibadaId) {
+  const ib = cats.flatMap(c=>c.ibadas).find(i=>i.id===ibadaId);
+  return personalGoals[goalKey(catId,ibadaId)] ?? (ib?.base||1);
+}
+// نقاط فعلية لخلية مع مراعاة الهدف الشخصي
+function getEffectivePts(catId, ibadaId, day) {
+  const k = cellKey(catId,ibadaId,day);
+  if (editedPts[k]!==undefined) return editedPts[k];
+  const cat = cats.find(c=>c.id===catId);
+  const ib = cat?.ibadas.find(i=>i.id===ibadaId);
+  if (!ib) return 0;
+  if (!ib.goal) return ib.pts;
+  const goalVal = getGoalVal(catId, ibadaId);
+  const base = ib.base||1;
+  return Math.round((goalVal/base)*ib.pts);
+}
+
+function toggleGoalsBox() {
+  const body = document.getElementById('goals-body');
+  const arr = document.getElementById('goals-arr');
+  const open = body.style.display==='block';
+  body.style.display = open?'none':'block';
+  arr.textContent = open?'▼':'▲';
+}
+
+function renderGoalsSection() {
+  // اجمع كل العبادات اللي goal=true
+  const goalItems = [];
+  cats.forEach(cat=>cat.ibadas.forEach(ib=>{ if(ib.goal) goalItems.push({cat,ib}); }));
+  const box = document.getElementById('goals-box');
+  if (goalItems.length===0) { box.style.display='none'; return; }
+  box.style.display='block';
+  const cont = document.getElementById('goals-rows');
+  cont.innerHTML='';
+  goalItems.forEach(({cat,ib})=>{
+    const gk = goalKey(cat.id,ib.id);
+    const curVal = getGoalVal(cat.id,ib.id);
+    const base = ib.base||1;
+    const unit = ib.unit||'';
+    const row = document.createElement('div');
+    row.className='goal-row';
+    // اقتراح ٣ قيم: الأساسي، ضعفه، ٣ أضعاف
+    const opts = [base, base*2, base*3];
+    const optsHtml = opts.map(v=>`
+      <button class="goal-opt${curVal===v?' active':''}" onclick="setGoal('${cat.id}','${ib.id}',${v})">${v} ${unit}</button>
+    `).join('');
+    row.innerHTML=`
+      <div style="flex:1">
+        <div class="goal-name">${ib.name}</div>
+        <div class="goal-base-lbl">الأساسي: ${ib.baseLabel||base+' '+unit}</div>
+      </div>
+      <div class="goal-ctrl">
+        <div class="goal-opts">${optsHtml}</div>
+        <div class="goal-custom">
+          <span>أو:</span>
+          <input type="number" min="1" max="9999" placeholder="رقم"
+            value="${![...opts].includes(curVal)?curVal:''}"
+            onchange="setGoal('${cat.id}','${ib.id}',parseFloat(this.value)||${base})">
+          <span>${unit}</span>
+        </div>
+      </div>
+    `;
+    cont.appendChild(row);
+  });
+}
+
+function setGoal(catId, ibadaId, val) {
+  personalGoals[goalKey(catId,ibadaId)] = val;
+  saveGoals();
+  renderGoalsSection();
+  renderTable();
+  showToast('✓ تم تحديد الهدف');
+}
+
 // ====== GENERATE & SWITCH ======
 function generateAndSwitch() {
   if (cats.length === 0) { showToast('أضيفي فئة أولاً'); return; }
@@ -671,6 +784,7 @@ function renderTable() {
     totTr.appendChild(td);
   }
   body.appendChild(totTr);
+  renderGoalsSection();
   recalcTable();
 }
 
@@ -679,16 +793,23 @@ function applyCell(td, v, catId, ibadaId, day, ib) {
   td.innerHTML='';
   if (v===1) {
     td.classList.add('done');
-    const k = `${catId}-${ibadaId}-${day}`;
-    const pts = editedPts[k]!==undefined ? editedPts[k] : ib.pts;
+    const pts = getEffectivePts(catId, ibadaId, day);
+    const basePts = ib.pts;
     const ptsClass = ib.type==='bonus'?'bonus':ib.type==='negative'?'neg':'pos';
     const inner = document.createElement('div');
     inner.className='cell-inner';
-    // checkmark
     inner.innerHTML=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="11" height="11"><path d="M4 12.5L9.5 18L20 6" fill="none" stroke="${ib.type==='negative'?'#c0392b':ib.type==='bonus'?'#b8860b':'#1a6b3c'}" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
     const numSpan = document.createElement('span');
     numSpan.className = 'cell-pts '+ptsClass;
     numSpan.textContent = pts;
+    // سهم إذا تغيرت النقاط عن الأصل
+    if (ib.goal && pts !== basePts) {
+      const arrow = document.createElement('span');
+      arrow.style.cssText='font-size:8px;font-weight:700;line-height:1';
+      arrow.style.color = pts>basePts?'var(--g1)':'var(--r1)';
+      arrow.textContent = pts>basePts?'↑':'↓';
+      inner.appendChild(arrow);
+    }
     if (ib.editable!==false) {
       numSpan.title='اضغطي لتعديل النقاط';
       numSpan.onclick = e => { e.stopPropagation(); openInlineEdit(catId,ibadaId,day,ib,numSpan,pts); };
@@ -741,7 +862,7 @@ function getDayTotal(d) {
   cats.forEach(cat=>cat.ibadas.forEach(ib=>{
     const k=cellKey(cat.id,ib.id,d);
     if ((tableState[k]||0)===1) {
-      t += editedPts[k]!==undefined ? editedPts[k] : ib.pts;
+      t += getEffectivePts(cat.id, ib.id, d);
     }
   }));
   return t;
@@ -776,6 +897,7 @@ function showToast(msg) {
 
 // ====== INIT ======
 loadData();
+loadGoals();
 renderSettings();
 </script>
 </body>
